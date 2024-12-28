@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPU FRAGEN UND ANTWORTEN</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .container {
+            display: flex;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0;
+        }
+        .questions,
+        .answers {
+            flex: 1;
+        }
+        .questions {
+            padding: 0;
+            margin-right: 20px;
+        }
+        .questions-list {
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .btn-custom {
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            font-size: 16px;
+            margin-top: 5px;
+            width: 100%;
+            background-color: #1A3A7A; /* Dunkel dunkelblau */
+            color: white;
+        }
+        .btn-custom.active {
+            background-color: #d9a600;
+            color: white;
+        }
+        .answers {
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            position: fixed;
+            top: 10%;
+            left: 50%;
+            transform: translate(-50%, -10%);
+            z-index: 1000;
+            width: 60%;
+            max-height: 70vh;
+            overflow-y: auto;
+            display: none;
+        }
+        .floating-buttons {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .dark-mode {
+            background-color: #1e1e1e;
+            color: white;
+        }
+        .dark-mode .questions-list { background-color: #333; }
+        .dark-mode .btn-custom { background-color: #1A3A7A; color: white; }
+        .dark-mode .btn-custom.active { background-color: #d9a600; }
+        .dark-mode .answers { background-color: #444; color: white; }
+        .search-bar {
+            margin-bottom: 10px;
+        }
+        .mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .mode-toggle.sun {
+            color: #FFD700; /* Gold for sun */
+        }
+        .mode-toggle.moon {
+            color: #C0C0C0; /* Silver for moon */
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <button class="mode-toggle sun" onclick="toggleDarkMode()">☀️</button>
+    <main class="container">
+        <div class="questions">
+            <select id="filterDropdown" class="form-control mb-3" onchange="filterQuestions()">
+                <option value="all">ALLE</option>
+                <option value="video">MIT VIDEO</option>
+                <option value="image">MIT BILD</option>
+            </select>
+            <div class="questions-list" id="questionsList"></div>
+        </div>
+        <div class="answers" id="answerBox">
+            <button class="btn btn-danger mb-2" onclick="closeAnswer()">SCHLIEßEN</button>
+            <div id="answerContent"></div>
+        </div>
+    </main>
+    <script>
+        const qa_data = [
+            {
+        "question": "WARUM KOMMEN SIE ZUR MPU?",
+        "answer": [
+            "Ich habe Fehler gemacht, habe mich nicht an die Regeln gehalten, bin betrunken aufgefallen.",
+            "Ich habe meine Einstellung zum Alkohol und zum Straßenverkehr verändert und das will ich Ihnen heute zeigen!"
+        ]
+    },
+    {
+        "question": "WAS SAGEN SIE ZU DEN ZWEIFELN DER BEHÖRDE AN IHRER FAHREIGNUNG? WAS SAGEN SIE DAZU DASS SIE HEUTE HIER SIND? SIND SIE EINVERSTANDEN DASS SIE HEUTE HIER SIND?",
+        "answer": [
+            "Ich kann das verstehen, dass finde ich gerecht, weil ich unter Alkoholeinfluss gefahren bin und ganz klar, eine Gefahr wahr!"
+        ]
+    },
+    {
+    "question": "BESCHREIBEN SIE DEN TAG IHRER TRUNKENHEITSFAHRT AUS EIGENER SICHT MIT DATUM UND UHRZEITEN.",
+    "answer": [
+        "Tathergang:",
+        "Am 17.09.2021 Freitag 20:08 -> Blutentnahme um 20:36, 1.6 Promille",
+        "Trinkbeginn: 17:00, 5 Bier + 4 doppelte",
+        "Ich habe nach der Arbeit Geburtstag von Kollegen gefeiert. Ich wusste am Freitag wird gefeiert!",
+        "TRINKEINHEIT (1 TRINKEINHEIT IST EINE KURZE, 0,5 LITER BIER HAT 2,5 TRINKEINHEITEN, EIN GLAS WEIN HAT 2,5 TRINKEINHEITEN)",
+        "Höchstmengen: alle drei Monate bei besonderen Anlässen, 7 Bier + 5 doppelte, ansonsten, unterschiedlich, nur am Wochenende.",
+        "1-2 Bier wenn nichts Besonderes war, beim Essen!",
+        "3-4, 5-6 oder 4-5 Bier immer Unterschiedlich, auch nicht jedes Wochenende!",
+        "Vor 2 bis 3 Jahren da habe ich mein Konsum negativ verändert, davor habe habe ich 1-2 X monatlich etwas getrunken habe, meistens auf einer Feier oder im Restaurant.",
+        "So ungefähr maximal 3-4 Bier und 2 doppelte.",
+        "Nach und nach habe ich immer mehr getrunken, 3-4, 5-6 oder 4-5 Bier immer Unterschiedlich, und dann Höchstmengen: alle drei Monate bei besonderen Anlässen, 7 Bier + 5 doppelte!"
+    ]
+},
+    {
+        "question": "WOLLTEN SIE SO VIEL TRINKEN? WIE WOLLTEN SIE NACH HAUSE FAHREN?",
+        "answer": [
+            "Doch ich wusste wir treffen uns und ich trinke.",
+            "Es war ausgemacht dass meine Frau mich abholt so gegen 22:00 Uhr - Meine Frau war an dem Abend bei der Nachbarin, Schmuck Abend.",
+            "Ich bin aber gegen 20:00 Uhr schon Müde geworden und wollte nach Hause.",
+            "Wollte dann auf meine Frau nicht warten und habe die falsche Entscheidung getroffen und bin mit dem Auto nach Hause gefahren."
+        ]
+    },
+    {
+        "question": "HATTEN SIE DAS GEFÜHL, NOCH SICHER FAHREN ZU KÖNNEN? WIE SIE HINSICHTLICH DER ALKOHOLWIRKUNG GEFÜHLT HABEN?",
+        "answer": [
+            "Ja, ich dachte ich kann noch fahren!",
+            "Aus heutiger Sicht war das natürlich nicht der Fall."
+        ]
+    },
+    {
+        "question": "GAB ES SOLCHE FAHRTEN DAVOR OHNE ERWISCHT ZU WERDEN?",
+        "answer": [
+            "Ja leider schon ein paarmal!",
+            "Mit 3 oder 4 Flaschen Bier oder auch solche Fahrten wie am Tattag gab’s, ja!",
+            "Das war verantwortungslos von mir. Heute tut mir das leid!"
+        ]
+    },
+    {
+        "question": "WAS HABEN SIE SICH AM NÄCHSTEN TAG GEDACHT?",
+        "answer": [
+            "Niedergeschlagen, geschämt, Kater gehabt.",
+            "Ich habe bereut, dass ich andere und mich in Gefahr gebracht habe.",
+            "Nach dem Delikt im September war ich frustriert, habe noch 2 Monate weiter so getrunken, Und so langsam zwei Monate nach dem Delikt, da habe ich mein Konsum auf maximal zwei Bier reduziert, und habe mich entschieden für meine Zukunft für meine Familie und die Gesellschaft mein Alkoholkonsum zu reduzieren.",
+            "Habe realisiert dass mein Alkoholkonsum zu hoch war! Gott sei Dank ist nichts passiert! Dann habe ich mir gesagt, sowas wird mir nie wieder passieren.",
+            "Ich habe mir geschworen Alkohol und Fahren für immer zu trennen.",
+            "Es war zu viel was ich trinken konnte.",
+            "Ich habe mich dann erinnert, wie schön das ist, wenn ich am Wochenende nur 1-2 Bier getrunken habe, da ist der Sonntag nicht kaputt gewesen.",
+            "Und man wird nicht blöd und leichtsinnig von zwei Bier.",
+            "Nur noch bei besonderen Anlässen.",
+            "Das erste Bier habe ich zu Weihnachten getrunken.",
+            "Dann Sylvester ein Bier, um 24:00 Uhr ein Sekt.",
+            "Dann mein Geburtstag am 09.03.2022 nachgefeiert am 12.03.2022, ein Bier."
+        ]
+    },
+    {
+        "question": "WIE WAR DAS REDUZIEREN FÜR SIE?",
+        "answer": [
+            "Es war ungewöhnlich, komisch bei den ersten Feierlichkeiten (kein Schwitzen, kein Unruhiges schlafen)."
+        ]
+    },
+    {
+        "question": "WARUM HABEN SIE IHREN KONSUM REDUZIERT?",
+        "answer": [
+            "Weil ich von 1-2 Bier nicht leichtsinnig werde.",
+            "Es gab ja Nachteile, der Sonntag war kaputt, es gab auch peinliche Situationen, und ich will in Zukunft niemanden im Verkehr verletzen."
+        ]
+    },
+    {
+        "question": "WARUM HABEN SIE DAS TRINKEN NICHT SCHON FRÜHER REDUZIERT?",
+        "answer": [
+            "Ich habe mich früher nicht um meine Gesundheit gekümmert und verharmloste den Alkohol.",
+            "Keine Bewussten Pausen, keine Blackouts, keine Gedächtnislücken, keine Kontrollverluste!"
+        ]
+    },
+    {
+        "question": "GAB ES KRITISCHE HINWEISE ANDERER AUF IHREN ALKOHOLKONSUM UND WIE HABEN SIE DARAUF REAGIERT?",
+        "answer": [
+            "Nein, es gab keine Hinweise Anderer auf meinem Alkoholkonsum!"
+        ]
+    },
+    {
+        "question": "HABEN SIE JEMALS DIE KONTROLLE ÜBER IHRE TRINKMENGE VERLOREN UND BIS ZUR VOLLTRUNKENHEIT ALKOHOL KONSUMIERT?",
+        "answer": [
+            "Die Kontrolle über meine Trinkmenge habe ich nicht verloren, denn Ich hatte keine Filmrisse, keine Gedächtnislücken, keine Kontrollverluste!"
+        ]
+    },
+    {
+        "question": "HABEN SIE FRÜHER SCHON EINMAL ODER ÖFTER ÜBER EINEN LÄNGEREN ZEITRAUM BEWUSST UND MIT ABSICHT VÖLLIG AUF DEN GENUSS VON ALKOHOL VERZICHTET? HABEN SIE PAUSEN GEMACHT?",
+        "answer": [
+            "Nein, bewusst habe ich früher auf den Genuss von Alkohol nicht verzichtet, Abstinenzanläufe (Alkoholverzicht) gab es nicht."
+        ]
+    },
+    {
+        "question": "WANN HATTEN SIE DEN ERSTEN KONTAKT MIT ALKOHOL UND WANN HABEN SIE DAS ERSTE MAL ALKOHOL ZU SICH GENOMMEN?",
+        "answer": [
+            "Erst so mit 15 oder 16 Jahren habe ich zum ersten Mal einen Schluck Bier probiert.",
+            "Der hat mir damals aber nicht geschmeckt."
+        ]
+    },
+    {
+        "question": "WARUM HABEN SIE ALKOHOL GETRUNKEN? URSACHEN?",
+        "answer": [
+            "Mein Vater war dominant, ich musste mich anpassen.",
+            "Bruder war der Erste, ich war immer Zweiter.",
+            "Nur ich war für die Mutterpflege zuständig.",
+            "Drei Jahre Mutterpflege haben mich überlastet!",
+            "Fühlte mich zu Hause auf der Ersatzbank.",
+            "Beim Fußball fühlte ich mich geschätzt.",
+            "Dachte, Jungs akzeptieren mich nicht, wenn ich nicht mittrinke.",
+            "Trinken wurde ein Wettkampf.",
+            "Mitgetrunken, ich fühlte mich zugehörig und lustig.",
+            "Ich wollte allen gefallen, konnte schlecht Nein sagen.",
+            "Überlastet, wurde ausgenutzt.",
+            "Fühlte mich wertlos, ohne Anerkennung.",
+            "Trank Alkohol, um Unzufriedenheit zu vergessen.",
+            "3 Jahre Mutterpflege war extrem belastend, kaum eigene Zeit.",
+            "Bruder half kaum.",
+            "Wollte Anerkennung in Familie, wurde mein Leben lang ignoriert."
+        ]
+    },
+    {
+        "question": "POSITIVE ASPEKTE DES ALKOHOLKONSUMS?",
+        "answer": [
+            "Positiv beim Alkoholkonsum war dass Ich entspannter, redseliger war.",
+            "Es war eine gute, angenehme Stimmung.",
+            "(bei wenig und bei viel Alkohol)",
+            "Bei wenig Alkohol 1 bis 2 Flaschen Bier wurde ich redseliger und lustiger, gelassener.",
+            "Hatte am nächsten Tag keinerlei Beschwerden.",
+            "Bei viel Alkohol ca. 5 bis 6 Flaschen Bier 0,5 Liter mit 5 % Alkoholgehalt habe ich am nächsten Tag mit Kopfschmerzen und Müdigkeit zu kämpfen."
+        ]
+    },
+    {
+        "question": "NEGATIVE FOLGEN DES ALKOHOLKONSUMS?",
+        "answer": [
+            "Negativ war dass ich Am nächsten Tag Kopfschmerzen hatte, ich war müde, unmotiviert, ein ganz anderer Mensch."
+        ]
+    },
+    {
+        "question": "ALKOHOL EINSCHÄTZUNG!",
+        "answer": [
+            "Es war gefährlich, weil die Mengen von Jahr zur Jahr gestiegen sind (Toleranzsteigerung), das war zu viel was ich getrunken habe, ich habe früher mir keine Gedanken gemacht, ist es viel oder nicht?",
+            "Aber nach dem Delikt sehe ich es anderes, das hätte ein Problem werden können.",
+            "Scala bei 5."
+        ]
+    },
+    {
+        "question": "KÖNNEN SIE IN ZUKUNFT SICH VORSTELLEN EIN ZWEI BIER ZU TRINKEN ODER EIN DRITTES BIER?",
+        "answer": [
+            "Das mache ich schon seit der Auffälligkeit so mit 1-2 Bier, weil es mir schmeckt!",
+            "Nur bei besonderen Anlässen, aber kein drittes Bier.",
+            "Das gefällt mir gut so wie es ist!"
+        ]
+    },
+    {
+        "question": "WOLLEN SIE NICHT ABSTINENT LEBEN?",
+        "answer": [
+            "Ich will nicht Abstinent leben bei besonderen Anlässen kann ich mir das weiterhin gut vorstellen, eine Flasche Bier zu trinken, denn es schmeckt mir es ist was Besonderes!",
+            "Ich trinke Alkohol nicht mehr, um eine Wirkung zu erzielen, um mich besser zu fühlen.",
+            "Ein Glas ist jetzt ein Teil des Essens, zum Genuss."
+        ]
+    },
+    {
+        "question": "WIE LANGE WOLLEN SIE DAS KONTROLLIERTE TRINKEN BEIBEHALTEN?",
+        "answer": [
+            "Das kontrollierte Trinken will ich für immer behalten, mir gefällt es ganz gut, ich habe die Nachteile (Kater am Sonntag, Kopfschmerzen) nicht mehr.",
+            "Bin sehr zufrieden.",
+            "Ich hab festgestellt, dass zu viel trinken zu nichts Gutes führt."
+        ]
+    },
+    {
+        "question": "WIE HALTEN SIE ES JETZT MIT IHRER CLIQUE, MIT DER SIE NORMALERWEISE FRÜHER WEGGEGANGEN SIND?",
+        "answer": [
+            "Mittlerweile habe ich zu meiner Clique keinen Kontakt mehr.",
+            "Auch habe ich festgestellt, dass es bei denen nur um den Alkohol ging.",
+            "In meinem jetzigen Freundeskreis würde starker Alkohol auch nicht akzeptiert werden."
+        ]
+    },
+    {
+        "question": "WO UND MIT WEM HABEN SIE ÜBERWIEGEND GETRUNKEN?",
+        "answer": [
+            "Ich habe nur in der Gesellschaft mit Bekannten, Kollegen getrunken, nie alleine.",
+            "Nur bei bestimmten Anlässen, wie zum Beispiel Geburtstage, Anstoßen mit Kollegen, Silvester."
+        ]
+    },
+    {
+        "question": "WAS SPRICHT DAGEGEN DAS SIE NICHT IM MISSBRAUCH (ÜBERMÄSSIGER KONSUM) WAREN?",
+        "answer": [
+            "Ich war nicht im Missbrauch weil ich nicht jeden Tag getrunken habe, ich habe meine Pflichten nicht vernachlässigt.",
+            "Ich hatte nie Probleme bei der Arbeit aufgrund von Alkoholkonsum.",
+            "Ich habe die Kontrolle über meinen Alkoholkonsum nicht verloren, es gab in meinem Leben oft Gelegenheiten, bei denen ich eine Flasche Bier getrunken habe, und das war's.",
+            "Ich habe nie alleine getrunken.",
+            "Ich habe die Woche über nichts getrunken."
+        ]
+    },
+    {
+        "question": "WANN HABEN SIE ZULETZT ALKOHOL GETRUNKEN?",
+        "answer": [
+            "Am 12 März habe ich Geburtstag nachgefeiert, ein Bier."
+        ]
+    },
+    {
+        "question": "TRINKEN SIE HEUTE ALKOHOL? WENN JA, WAS, WIE VIEL UND WIE OFT?",
+        "answer": [
+            "Ich trinke zu besonderen Anlässen ca. 6-8 Mal pro Jahr, wie zum Beispiel Geburtstage, Silvester.",
+            "Ich trinke nicht wegen der Wirkung (berauscht sein) sondern nur wegen des Genusses (wie Kuchen essen).",
+            "maximal zwei Bier von 0,33 Liter - über 3-4 Stunden.",
+            "Das trinke ich in kleinen Schlucken und langsam.",
+            "Davor und dazwischen trinke ich Wasser.",
+            "Nicht alleine oder nicht zusammen mit Vieltrinkern."
+        ]
+    },
+    {
+        "question": "WIE WOLLEN SIE IN ZUKUNFT DAS TRINKEN VOM FAHREN TRENNEN? TRENNVERMÖGEN",
+        "answer": [
+            "Ich plane im Voraus, mit wem, wann und wo ich was trinke.",
+            "Trinke nie ungeplant.",
+            "Wie ich hin und zurück komme.",
+            "Null-Promille-Grenze.",
+            "Absicht Auto zu fahren … Kein Alkohol!",
+            "Absicht zu trinken … Kein Auto!",
+            "Zum Beispiel: Öffentliche Verkehrsmittel, Meine Frau fährt mich hin oder ich fahre mit dem Taxi hin- und zurück.",
+            "Und habe immer mein Limit. - maximal zwei Bier von 0,33 Liter -"
+        ]
+    },
+    {
+        "question": "AB WELCHER MENGE NEHMEN SIE HEUTE EINE ALKOHOLWIRKUNG WAR?",
+        "answer": [
+            "Bereits nach einem oder zwei Glas Bier ist eine spürbare Wirkung da.",
+            "Meine Alkoholtoleranz hat in den letzten Monaten erheblich abgenommen, weil ich wesentlich weniger trinke."
+        ]
+    },
+    {
+        "question": "WAS WISSEN SIE ÜBER ALKOHOL (WIRKUNG, ABBAUGESCHWINDIGKEIT, PROMILLEGRENZEN, RECHTLICHE FOLGEN)?",
+        "answer": [
+            "Eine sofortige, angenehme Wirkung von kurzer Dauer durch Ausschüttung von Endorphinen(Glückshormone).",
+            "Abbauzeiten: Körper baut zwischen 0,1 bis 0,2 Promille in der Stunde ab.",
+            "Mann mit einem Gewicht von 50-80 Kilogramm baut in einer Stunde 0,15 Promille ab.",
+            "Frau mit 50-60 kg baut in einer Stunde 0,1 Promille ab.",
+            "0,5 Liter Bier hat ca. 0,3 Promille!",
+            "Die Promillegrenze liegt bei 0,5 Promille.",
+            "Ab 0,5 Promille Ordnungswidrigkeit, ab 1,1 Promille Straftat."
+        ]
+    },
+    {
+        "question": "WARUM TRINKEN SIE HEUTE KONTROLLIERT ALKOHOL? VERÄNDERUNGEN, HEUTE UND ZUKUNFT",
+        "answer": [
+            "Habe mehr Lebenszeit heute, für meine Familie, Freunde und Hobbys.",
+            "Habe mein altes Hobby wieder, habe mir ein neues Fahrrad gekauft, fahre viel mit meiner Frau Fahrrad.",
+            "Außerdem möchte ich nie mehr jemanden gefährden.",
+            "Wo ich früher am Wochenende konsumiert habe, habe ich nun durch Hobbys und die Familie ersetzt."
+        ]
+    },
+    {
+        "question": "WAS WÄREN RISIKOSITUATIONEN, IN DENEN IHR NEUES TRINKVERHALTEN GEFÄHRDET SEIN KÖNNTE?",
+        "answer": [
+            "Risikosituation: Bestimmte (Lebenskrisen)",
+            "Können gefährlich sein, wie zum Beispiel der Tod eines geliebten Menschen, eine schwere Krankheit, der Verlust des Arbeitsplatzes, Angst, Stimmungsschwankungen, der Verlust eines Partners oder eine schwere Erkrankung.",
+            "Wie würden Sie reagieren, wenn Sie Ihren Job verlieren würden? Das sollten wir nicht unterschätzen.",
+            "Auch in einem solchen Fall würde ich nicht unkontrolliert Alkohol trinken.",
+            "Ich würde meine Unterstützung in meiner Familie finden.",
+            "Ich lebe weiter, schaue nach vorne.",
+            "Ich liebe meinen momentanen Arbeitsplatz und hoffe, dass ich meinen Job nicht verliere!",
+            "Risikosituation: (Ungeplantes Treffen)",
+            "Vor drei Monaten traf ich zufällig einen alten Freund.",
+            "Wir unterhielten uns und gingen zusammen in ein Café.",
+            "Der Freund wollte mich auf ein Bier einladen und ich lehnte automatisch ab... weil es kein geplanter Trinktag war.",
+            "Erst später am Abend wurde mir klar, dass ich ohne nachzudenken abgelehnt hatte.",
+            "Ich bin wirklich stolz auf diese Entwicklung und sehr glücklich!"
+        ]
+    },
+    {
+        "question": "WIE HOCH IST DAS RÜCKFALLRISIKO? WIE STELLEN SIE SICHER, DASS IHR NEUES VERHALTEN LANGFRISTIG STABIL BLEIBT?",
+        "answer": [
+            "Ich bin gefestigt und von mir aus nie wieder.",
+            "Natürlich kann aber keiner 100% geben.",
+            "In Zukunft will ich mich an die Gesetze halten, weil ich niemanden mehr in Gefahr bringen möchte."
+        ]
+    },
+    {
+        "question": "WARUM IST DAS RISIKO MINIMAL?",
+        "answer": [
+            "Mein Limit gibt mir Sicherheit, dass heißt maximal zwei Flaschen Bier.",
+            "Kenne riskante Situationen, ich habe neue Freunde, ich weiß, was kontrolliertes Trinken bedeutet!",
+            "Weiß was Suchtgedächtnis, Weiß was Toleranzsteigerung ist.",
+            "Ich weiß um meinen Wunsch nach Anerkennung und Zugehörigkeit!",
+            "Habe gelernt NEIN zu sagen.",
+            "Ich habe erkannt ich muss mich nicht verstellen um dazu zu gehören, ich kann zeigen, dass ich auch schwach bin, ich muss mich nicht mehr beweisen."
+        ]
+    },
+    {
+        "question": "WAS HABEN SIE BEI DER MPU VORBEREITUNG GELERNT?",
+        "answer": [
+            "Wir haben über das Delikt gesprochen und meine Fehler gefunden.",
+            "Habe nur an mich gedacht, habe das Gesetz nicht respektiert, war eine Gefahr für mich und für andere!",
+            "Weiß das Alkohol Nerven und Zellen Gift ist, ist gesundheitsschädigend.",
+            "Kann zur Abhängigkeit führen.",
+            "Weiß was Rauschtrinken ist, wenn fünf oder mehr Gläser Alkohol bei einer Gelegenheit getrunken werden.",
+            "Weiß was Toleranzsteigerung ist (Alkohol wird immer mehr).",
+            "Weiß was Suchtgedächtnis ist (das Gehirn wird sich immer an die Höchstmengen erinnern).",
+            "Das die Rückfallgefahr nicht ausgeschlossen werden kann.",
+            "Habe Vor- und Nachteile besprochen.",
+            "Bin für die Zukunft bereit."
+        ]
+    },
+    {
+        "question": "WAS SAGEN SIE ZU DEM DAS SIE EINE MPU MACHEN MÜSSEN?",
+        "answer": [
+            "Die MPU sei eine Lehre für mich.",
+            "Ich hätte sonst in meinem Leben nichts verändert.",
+            "Das hat mein Denken und meine Einstellung verändert, wäre mir das nicht passiert wer weiß was noch gekommen wäre.",
+            "Dafür bin ich dankbar!"
+        ]
+    },
+    {
+        "question": "MEINEN SIE, SIE SOLLTEN DEN FÜHRERSCHEIN ZURÜCKERHALTEN?",
+        "answer": [
+            "Nicht unbedingt, es wäre schön, aber wichtig für Mich IST die Tatsache, dass ich meine Denkweise und meine Einstellung zum Leben, zum Straßenverkehr, zu Gesetzen geändert habe, ich will die Gesetze respektieren."
+        ]
+    },
+    {
+        "question": "HABEN SIE ZUM ABSCHLUSS NOCH ETWAS HINZUZUFÜGEN?",
+        "answer": [
+            "Ich denke, dass der Entzug des Führerscheins nicht so schwerwiegend ist, weil es für mich eine Geisteslektion ist.",
+            "Wenn mir das nicht passiert wäre, hätte ich nichts im Leben verändert.",
+            "Dafür bin ich dankbar!"
+        ]
+    },
+    {
+        "question": "WARUM HABEN WIR SO VIELE REGELN UND GESETZE?",
+        "answer": [
+            "Man braucht Regeln.",
+            "Sie schützen uns.",
+            "Ich habe verstanden, dass ich sicher und in Frieden lebe, wenn ich mich an die Regeln halte.",
+            "Ohne Regeln versinkt die Gesellschaft in Chaos, es gibt nur Chaos."
+        ]
+    },
+    {
+        "question": "SIND SIE EIN SICHERER FAHRER? NEIN, SONST WÄRE ICH NICHT BEI DER MPU, DENN RICHTIG GUTE AUTOFAHREN MÜSSEN NICHT ZUR MPU!",
+        "answer": [
+            "Wie schätzen Sie sich als Fahrer damals ein?",
+            "Ich war ein egoistischer Fahrer, ich dachte nur an mich selbst und nicht an die Folgen!",
+            "Es tut mir leid!"
+        ]
+    },
+    {
+        "question": "WAS IST FÜR SIE EIN GUTER, NORMALER AUTOFAHRE?",
+        "answer": [
+            "Ein guter Bürger und Autofahrer, der das Gesetz respektiert, an andere denkt und keine Gefahr mehr ist!"
+        ]
+    },
+    {
+        "question": "WO LIEGT DIE RELATIVE UND WO DIE ABSOLUTE FAHRUNTAUGLICHKEITSGRENZE? BEI 0,3 UND 1,1 PROMILLE!",
+        "answer": [
+            "Wie viele Personen müssen jährlich zur MPU?",
+            "Bei 90.000 Personen im Jahr 2019 wegen Alkohol 40 %, Drogen mit 30 %, 20% Punkte, 10% Delikte."
+        ]
+    }
+        ];
+
+        function createButtons(data) {
+            const questionsList = document.getElementById('questionsList');
+            questionsList.innerHTML = '';
+            data.forEach((item) => {
+                const button = document.createElement('button');
+                button.classList.add('btn', 'btn-custom');
+                button.textContent = item.question;
+                button.onclick = () => showAnswer(item);
+                questionsList.appendChild(button);
+            });
+        }
+
+        function showAnswer(item) {
+            const answerBox = document.getElementById('answerBox');
+            const answerContent = document.getElementById('answerContent');
+            answerContent.innerHTML = `
+                <h3>${item.question}</h3>
+                ${item.answer}
+            `;
+            answerBox.style.display = 'block';
+            document.querySelectorAll('.btn-custom').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function closeAnswer() {
+            const answerBox = document.getElementById('answerBox');
+            answerBox.style.display = 'none';
+        }
+
+        function filterQuestions() {
+            const filter = document.getElementById('filterDropdown').value;
+            const filteredData = qa_data.filter(item => {
+                if (filter === 'video') return item.answer.includes('<iframe');
+                if (filter === 'image') return item.answer.includes('<img');
+                return true;
+            });
+            createButtons(filteredData);
+        }
+
+        function toggleDarkMode() {
+            const body = document.body;
+            const toggleButton = document.querySelector('.mode-toggle');
+            body.classList.toggle('dark-mode');
+            if (body.classList.contains('dark-mode')) {
+                toggleButton.classList.remove('sun');
+                toggleButton.classList.add('moon');
+                toggleButton.innerHTML = '🌙';
+            } else {
+                toggleButton.classList.remove('moon');
+                toggleButton.classList.add('sun');
+                toggleButton.innerHTML = '☀️';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => createButtons(qa_data));
+    </script>
+</body>
+</html>
